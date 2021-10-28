@@ -122,12 +122,10 @@ class SemiMarkov(_Struct):
     def to_parts(sequence, extra, lengths=None):
         """
         Convert a sequence representation to edges
-
         Parameters:
             sequence : b x N  long tensors in [-1, 0, C-1]
             extra : number of states
             lengths: b long tensor of N values
-
         Returns:
             edge : b x (N-1) x K x C x C semimarkov potentials
                         (t x z_t x z_{t-1})
@@ -137,12 +135,15 @@ class SemiMarkov(_Struct):
         labels = torch.zeros(batch, N - 1, K, C, C).long()
         if lengths is None:
             lengths = torch.LongTensor([N] * batch)
+        else:
+            assert max(lengths) == N
+            assert len(lengths) == batch
 
-        for b in range(batch):
+        for b, l in enumerate(lengths):
             last = None
             c = None
             for n in range(0, N):
-                if sequence[b, n] == -1:
+                if sequence[b, n] == -1 or n > l - 1:
                     assert n != 0
                     continue
                 else:
